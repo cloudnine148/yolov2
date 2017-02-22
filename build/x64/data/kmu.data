@@ -1,0 +1,6 @@
+classes= 1
+train  = data/kmu_train.txt
+valid  = data/kmu_train.txt
+names = data/kmu.names
+backup = backup/
+

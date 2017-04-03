@@ -548,7 +548,8 @@ void run_detector(int argc, char **argv)
 		int classes = option_find_int(options, "classes", 1);
 		//char *name_list = option_find_str(options, "names", "E:/yolov2/darknet-master/build/darknet/x64/data/kmu.names");
 		char **names = get_labels("data/obj.names");
-		demo(cfg, weights, thresh, -1, filename, names, classes, frame_skip, prefix);
+		demo(cfg, weights, 0.4, -1, filename, names, classes, frame_skip, prefix);
+		//demo(cfg, weights, thresh, -1, filename, names, classes, frame_skip, prefix);
 		//demo(cfg, weights, thresh, cam_index, filename, names, classes, frame_skip, prefix);
 				
     }

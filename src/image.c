@@ -231,11 +231,23 @@ void draw_detections(image im, int num, float thresh, box *boxes, float **probs,
             if(top < 0) top = 0;
             if(bot > im.h-1) bot = im.h-1;
 
-            draw_box_width(im, left, top, right, bot, width, red, green, blue);
-            if (alphabet) {
-                image label = get_label(alphabet, names[class], (im.h*.03)/10);
-                draw_label(im, top + width, left, label, rgb);
-            }
+			//class1에 대해서만 출력하겠다는 의미임
+			if (class == 1 )
+			{
+				draw_box_width(im, left, top, right, bot, width, red, green, blue);
+				if (alphabet)
+				{
+					image label = get_label(alphabet, names[class], (im.h*.03) / 10);
+					draw_label(im, top + width, left, label, rgb);
+				}
+			}
+			//모든 클래스에 대해 레이블, 박스 그리는 부분임
+			/*draw_box_width(im, left, top, right, bot, width, red, green, blue);
+			if (alphabet)
+			{
+				image label = get_label(alphabet, names[class], (im.h*.03) / 10);
+				draw_label(im, top + width, left, label, rgb);
+			}*/
         }
     }
 }
@@ -540,68 +552,72 @@ image load_image_cv(char *filename, int channels)
 
 image get_image_from_stream(CvCapture *cap)
 {
-	IplImage* src = cvQueryFrame(cap); //동영상 파일에서 각각의 프레임 정보를 가져옴
-	if (src == NULL)
-		exit(0);
-	image im;
-	//Season Histogram 값 초기화
-	/*if (frameCount < 1)
-	{
-		sh->winter = 0;
-		sh->summer = 0;
-	}*/
-	//초기 11프레임은 계절을 체크하기 위한 프레임으로 11프레임까지는 BMS를 적용하지 않음
-	if (frameCount < 12)
-	{
-		_CheckSeason(src);
-		frameCount++;
-		cvConvertImage(src, src, CV_GRAY2RGB);
-		im = ipl_to_image(src);
-		rgbgr_image(im);
-		return im;
-	}
+	//IplImage* src = cvQueryFrame(cap); //동영상 파일에서 각각의 프레임 정보를 가져옴
+	//if (src == NULL)
+	//	exit(0);
+	//image im;
+	////Season Histogram 값 초기화
+	///*if (frameCount < 1)
+	//{
+	//	sh->winter = 0;
+	//	sh->summer = 0;
+	//}*/
+	////초기 11프레임은 계절을 체크하기 위한 프레임으로 11프레임까지는 BMS를 적용하지 않음
+	//if (frameCount < 12)
+	//{
+	//	_CheckSeason(src);
+	//	frameCount++;
+	//	cvConvertImage(src, src, CV_GRAY2RGB);
+	//	im = ipl_to_image(src);
+	//	rgbgr_image(im);
+	//	return im;
+	//}
 
-	IplImage* bmsImg = NULL;
-	bmsImg = cvCreateImage(cvSize(src->width, src->height), IPL_DEPTH_8U, 1);
+	//IplImage* bmsImg = NULL;
+	//bmsImg = cvCreateImage(cvSize(src->width, src->height), IPL_DEPTH_8U, 1);
 
-	double stepSize;
-	int t;
-	//season histogram에서 winter가 큰경우  winter에 대한 step  size적용
-	if (11 < frameCount && (season_Summer < season_Winter))
-	{
-		season_Avg = season_Avg / 11;
-		season_stdDevi =  season_stdDevi / 11;
-		t = (80 > (season_Avg + season_stdDevi)) ? 80 : (season_Avg + season_stdDevi);
-		stepSize = (255 - t) / 5;
-		doWork(src,bmsImg, stepSize, 3, 3, 20, true, false, 2, 0, 400,t);
-	}
-	//season histogram에서 summer가 큰경우  summer에 대한 step  size적용
-	if (11 < frameCount && (season_Winter < season_Summer))
-	{
-		season_Avg = season_Avg / 11;
-		season_stdDevi = season_stdDevi / 11;
-		t = (80 >(season_Avg + season_stdDevi)) ? 80 : (season_Avg + season_stdDevi);
-		stepSize = (255 - t) / 2;
-		doWork(src,bmsImg, stepSize, 3,3, 20, true, false, 2, 0, 400,t);
-	}
-	
-	IplImage* saliencyImg = cvCreateImage(cvSize(src->width, src->height), IPL_DEPTH_8U, 3);
+	//double stepSize;
+	//int t;
+	////season histogram에서 winter가 큰경우  winter에 대한 step  size적용
+	//if (11 < frameCount && (season_Summer < season_Winter))
+	//{
+	//	season_Avg = season_Avg / 11;
+	//	season_stdDevi =  season_stdDevi / 11;
+	//	t = (80 > (season_Avg + season_stdDevi)) ? 80 : (season_Avg + season_stdDevi);
+	//	stepSize = (255 - t) / 5;
+	//	doWork(src,bmsImg, stepSize, 3, 3, 20, true, false, 2, 0, 400,t);
+	//}
+	////season histogram에서 summer가 큰경우  summer에 대한 step  size적용
+	//if (11 < frameCount && (season_Winter < season_Summer))
+	//{
+	//	season_Avg = season_Avg / 11;
+	//	season_stdDevi = season_stdDevi / 11;
+	//	t = (80 >(season_Avg + season_stdDevi)) ? 80 : (season_Avg + season_stdDevi);
+	//	stepSize = (255 - t) / 2;
+	//	doWork(src,bmsImg, stepSize, 3,3, 20, true, false, 2, 0, 400,t);
+	//}
+	//
+	//IplImage* saliencyImg = cvCreateImage(cvSize(src->width, src->height), IPL_DEPTH_8U, 3);
 
-	cvConvertImage(bmsImg, saliencyImg, CV_GRAY2RGB);
-	im = ipl_to_image(saliencyImg); // contrastImg : sailency map 적용영상
-	src = NULL;
-	if (bmsImg != NULL)
-	{
-		cvReleaseImage(&bmsImg);
-	}
-	if (saliencyImg != NULL)
-	{
-		cvReleaseImage(&saliencyImg);
-	}
+	//cvConvertImage(bmsImg, saliencyImg, CV_GRAY2RGB);
+	//im = ipl_to_image(saliencyImg); // contrastImg : sailency map 적용영상
+	//src = NULL;
+	//if (bmsImg != NULL)
+	//{
+	//	cvReleaseImage(&bmsImg);
+	//}
+	//if (saliencyImg != NULL)
+	//{
+	//	cvReleaseImage(&saliencyImg);
+	//}
+	//rgbgr_image(im);
+
+ //   return im;
+	IplImage* src = cvQueryFrame(cap);
+	if (!src) return make_empty_image(0, 0, 0);
+	image im = ipl_to_image(src);
 	rgbgr_image(im);
-
-    return im;
-
+	return im;
 }
 
 
